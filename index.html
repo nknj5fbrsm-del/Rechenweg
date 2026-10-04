@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Rechenweg</title>
+<style>
+  :root {
+    --cream: #f3eee4;
+    --paper: #fffdf8;
+    --ink: #2c2825;
+    --muted: #6a635b;
+    --line: #e4d9c8;
+    --teal: #1c6b66;
+    --teal-dark: #145550;
+    --wash: #e5f3f1;
+    --soft: #d7ebe7;
+    --shadow: 0 12px 32px rgba(44, 40, 37, 0.06);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  html { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 10% -10%, rgba(28, 107, 102, 0.08), transparent 55%),
+      var(--cream);
+    font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+    border-top: 7px solid var(--teal);
+  }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  button:focus { outline: none; }
+  button:focus-visible {
+    outline: 3px solid var(--teal);
+    outline-offset: 3px;
+  }
+  .app {
+    width: min(520px, 100%);
+    margin: 0 auto;
+    padding: 22px 18px 36px;
+  }
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 750;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h1 .mark {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--teal);
+    display: inline-block;
+    flex: none;
+  }
+  .goal-line {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+  .sound {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+  }
+  .sound[aria-pressed="true"] {
+    color: var(--teal-dark);
+    border-color: var(--teal);
+    background: var(--wash);
+  }
+  .sound-label { font-size: 15px; font-weight: 650; }
+  .trail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 16px;
+  }
+  .dots {
+    position: relative;
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    align-items: center;
+  }
+  .dots::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 50%;
+    height: 3px;
+    background: #e3d8c8;
+    transform: translateY(-50%);
+  }
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    justify-self: center;
+    background: var(--paper);
+    border: 2px solid #d9d0c2;
+    position: relative;
+    z-index: 1;
+    transition: background 0.35s ease, border-color 0.35s ease;
+  }
+  .dot.on {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .goal-mark { width: 32px; height: 32px; flex: none; }
+  .card {
+    background: var(--paper);
+    border-radius: 28px;
+    border: 1px solid rgba(44, 40, 37, 0.06);
+    box-shadow: var(--shadow);
+    padding: 18px 16px 16px;
+  }
+  .aufgabe {
+    margin: 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+    letter-spacing: 0.01em;
+  }
+  .pip-wrap { display: flex; justify-content: center; margin: 6px 0 2px; }
+  .prompt {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .expr {
+    margin: 6px 0 12px;
+    text-align: center;
+    font-family: Georgia, "Iowan Old Style", Palatino, "Palatino Linotype", serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .expr.xl { font-size: clamp(64px, 16vw, 92px); }
+  .expr.lg { font-size: clamp(48px, 12vw, 72px); }
+  .expr.md { font-size: clamp(34px, 8.5vw, 52px); }
+  .expr.sm { font-size: clamp(26px, 6.4vw, 40px); }
+  .q { color: var(--teal); }
+  .field {
+    min-height: 72px;
+    border-radius: 18px;
+    border: 2px solid var(--line);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Georgia, Palatino, serif;
+    font-size: 40px;
+    letter-spacing: 0.03em;
+  }
+  .field.ok {
+    border-color: var(--teal);
+    background: var(--wash);
+    color: var(--teal-dark);
+  }
+  .field.show {
+    border-color: var(--teal);
+    color: var(--teal-dark);
+  }
+  .caret {
+    width: 2px;
+    height: 34px;
+    background: var(--teal);
+    margin-left: 3px;
+    border-radius: 1px;
+    opacity: 0.7;
+  }
+  .msg {
+    text-align: center;
+    min-height: 2.7em;
+    margin: 10px 0 6px;
+    font-size: 18px;
+    color: transparent;
+  }
+  .msg.soft { color: var(--ink); }
+  .msg.ok { color: var(--teal-dark); font-weight: 750; }
+  .hint {
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    background: var(--wash);
+    border-radius: 16px;
+    color: var(--ink);
+    font-size: 17px;
+    line-height: 1.4;
+  }
+  .hint b { color: var(--teal-dark); }
+  .help-btn { min-height: 48px; font-size: 18px; margin-bottom: 8px; }
+  .stufe-quiet {
+    margin: -2px 0 6px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .timebar {
+    height: 12px;
+    border-radius: 999px;
+    background: #e7dfd2;
+    overflow: hidden;
+    margin: 2px 0 8px;
+  }
+  .timebar > span {
+    display: block;
+    height: 100%;
+    background: var(--teal);
+    border-radius: 999px;
+  }
+  .btn.stufe {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 78px;
+    margin-top: 10px;
+    line-height: 1.2;
+  }
+  .stufe-title { font-size: 20px; font-weight: 750; }
+  .stufe-sub { font-size: 15px; font-weight: 600; }
+  .pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+    user-select: none;
+  }
+  .pad button, .choices button, .btn {
+    border-radius: 16px;
+    border: 2px solid var(--line);
+    background: #fff;
+    min-height: 62px;
+    font-size: 28px;
+    font-weight: 650;
+    transition: transform 0.08s ease, background 0.08s ease;
+  }
+  .pad button:active, .choices button:active, .btn:active { transform: scale(0.98); }
+  .pad .ghost { font-size: 18px; color: var(--muted); font-weight: 700; }
+  .pad .go, .btn {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+    font-size: 22px;
+  }
+  .pad .go:active, .btn:active { background: var(--teal-dark); }
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 6px;
+    user-select: none;
+  }
+  .choices button {
+    min-height: 104px;
+    font-family: Georgia, Palatino, serif;
+    font-size: clamp(36px, 9vw, 48px);
+    font-weight: 600;
+  }
+  .choices button.picked {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+  .art {
+    position: relative;
+    height: 262px;
+    border-radius: 22px;
+    overflow: hidden;
+    background: var(--wash);
+    user-select: none;
+  }
+  .caption {
+    margin: 16px auto 14px;
+    text-align: center;
+    font-size: 20px;
+    line-height: 1.35;
+    max-width: 34ch;
+  }
+  .art-a .water {
+    position: absolute;
+    left: 0; right: 0; bottom: 48px;
+    height: 74px;
+    background: #c5e4df;
+  }
+  .art-a .bank {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 54px;
+    background: #efe6d6;
+  }
+  .art-a .boat {
+    position: absolute;
+    left: 18px;
+    bottom: 78px;
+    transform: translateX(220px);
+  }
+  .art-a .snail {
+    position: absolute;
+    left: 18px;
+    bottom: 10px;
+    width: 130px;
+    transform: translateX(54px);
+  }
+  .bubble {
+    position: absolute;
+    left: 4px;
+    bottom: 72px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    padding: 5px 8px;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    bottom: -9px;
+    border-width: 8px 7px 0 7px;
+    border-style: solid;
+    border-color: var(--ink) transparent transparent transparent;
+  }
+  .art-a .watcher {
+    position: absolute;
+    right: 8px;
+    bottom: 4px;
+  }
+  .art-b { background: linear-gradient(#f7f3ea, #f3eee4); }
+  .art-b .pip-slot {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+  }
+  .art-b .bird {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    transform: translateX(430px);
+  }
+  .art-b .hat {
+    position: absolute;
+    width: 52px;
+    left: calc(50% - 24px);
+    top: 118px;
+  }
+  .art-c {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 14px;
+    padding: 28px 12px 18px;
+    background: #f7f3ea;
+  }
+  .guys { display: flex; gap: 10px; align-items: flex-end; }
+  .guy {
+    width: 76px;
+    height: 98px;
+    border-radius: 40px;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 16px;
+    font-family: Georgia, Palatino, serif;
+    font-size: 32px;
+    position: relative;
+    transform-origin: center bottom;
+  }
+  .guy::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 20px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow: 26px 0 0 var(--ink);
+  }
+  .guy::after {
+    content: "";
+    position: absolute;
+    top: 42px;
+    width: 14px;
+    height: 8px;
+    border-radius: 0 0 10px 10px;
+    border: 2px solid var(--ink);
+    border-top: none;
+    opacity: 0;
+  }
+  .land { position: relative; height: 230px; }
+  .land svg.scene { width: 100%; height: 230px; display: block; }
+  .land .stand {
+    position: absolute;
+    bottom: 18px;
+    left: 36px;
+  }
+  .land.baum .stand { left: 28px; bottom: 22px; }
+  .land.turm .stand { left: 42px; bottom: 28px; }
+  .arrive {
+    text-align: center;
+    margin: 14px 0 6px;
+    font-size: 18px;
+  }
+  .score-line {
+    text-align: center;
+    margin: 0 0 8px;
+    font-size: 26px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-weight: 750;
+  }
+  .score-line span { color: var(--teal-dark); }
+  h2 {
+    margin: 2px 0 8px;
+    text-align: center;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+  }
+  .reward { position: relative; }
+  .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .confetti i {
+    position: absolute;
+    top: 0;
+    opacity: 0;
+    animation-name: fall;
+    animation-timing-function: ease-in;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+  }
+  .sticker-wrap { display: flex; justify-content: center; margin: 6px 0 14px; }
+  .sticker { text-align: center; }
+  .sticker p { margin: 4px 0 0; color: var(--teal-dark); font-weight: 700; }
+  .eyebrow {
+    margin: 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .btn { width: 100%; margin-top: 4px; }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .noscript {
+    max-width: 520px;
+    margin: 24px auto;
+    padding: 0 18px;
+  }
+  .art-d { background: linear-gradient(#f7f3ea, #e7f4f2); }
+  .art-d .star { position: absolute; left: calc(50% - 28px); top: 28px; }
+  .art-d .pip-slot, .art-f .pip-slot {
+    position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%);
+  }
+  .art-e { background: #f7f3ea; }
+  .art-e .apple { position: absolute; left: calc(50% - 46px); top: 64px; }
+  .art-e .worm { position: absolute; left: calc(50% - 10px); top: 92px; }
+  .art-e .pip-slot { position: absolute; right: 12px; bottom: 6px; }
+  .art-f { background: linear-gradient(#e7f4f2, #f7f3ea); }
+  .art-f .cloud { position: absolute; left: calc(50% - 46px); top: 16px; }
+  .art-f .drops { position: absolute; left: calc(50% - 16px); top: 78px; width: 36px; height: 54px; }
+  .drop {
+    position: absolute; width: 4px; height: 12px; border-radius: 4px; background: #1c6b66; opacity: 0.55;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .art-a .boat { animation: boatMove 4s ease-in-out forwards; }
+    .art-a .snail { animation: snailMove 4s ease-out forwards; }
+    .art-b .bird { animation: flyBy 4s linear forwards; }
+    .art-b .wing { transform-origin: 34px 28px; animation: flap 0.7s ease-in-out 3; }
+    .art-b .hat { animation: hatDrop 4s ease-in forwards; }
+    .guy { animation: stretch 4s ease-in-out forwards; animation-delay: var(--d); }
+    .guy::after { animation: yawn 4s ease-in-out forwards; animation-delay: var(--d); }
+    .art-d .star { animation: starUp 4s ease-in-out forwards; }
+    .art-e .apple { animation: appleDrop 4s ease-in forwards; }
+    .art-e .worm { animation: wormPeek 4s ease-out forwards; }
+    .art-f .drops .drop { animation: drip 1.4s ease-in infinite; }
+  }
+  @keyframes boatMove {
+    from { transform: translateX(-90px); }
+    to { transform: translateX(220px); }
+  }
+  @keyframes snailMove {
+    from { transform: translateX(0); }
+    to { transform: translateX(54px); }
+  }
+  @keyframes flyBy {
+    from { transform: translateX(-50px); }
+    to { transform: translateX(430px); }
+  }
+  @keyframes flap {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-14deg); }
+  }
+  @keyframes hatDrop {
+    0% { left: 8%; top: 34px; transform: rotate(-12deg); }
+    26% { left: 34%; top: 42px; transform: rotate(8deg); }
+    52% { left: calc(50% - 24px); top: 96px; transform: rotate(14deg); }
+    68%, 100% { left: calc(50% - 24px); top: 118px; transform: rotate(0deg); }
+  }
+  @keyframes stretch {
+    0%, 100% { transform: scale(1, 1) translateY(0); }
+    30% { transform: scale(0.94, 1.16) translateY(-12px); }
+    48% { transform: scale(1.05, 0.9) translateY(5px); }
+    70% { transform: scale(1, 1) translateY(0); }
+  }
+  @keyframes yawn {
+    0%, 20% { opacity: 0; height: 4px; }
+    32%, 44% { opacity: 1; height: 12px; }
+    58%, 100% { opacity: 0; height: 6px; }
+  }
+  @keyframes starUp {
+    0% { top: 150px; transform: rotate(-8deg); }
+    70%, 100% { top: 22px; transform: rotate(8deg); }
+  }
+  @keyframes appleDrop {
+    0% { top: -40px; }
+    62% { top: 78px; }
+    76% { top: 64px; }
+    100% { top: 70px; }
+  }
+  @keyframes wormPeek {
+    0%, 55% { opacity: 0; transform: translateY(8px); }
+    80%, 100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drip {
+    0% { transform: translateY(0); opacity: 0; }
+    20% { opacity: 0.7; }
+    100% { transform: translateY(36px); opacity: 0; }
+  }
+  @keyframes fall {
+    0% { opacity: 1; transform: translateY(0) rotate(var(--r)); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(460px) rotate(calc(var(--r) + 150deg)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .confetti i { animation: none; opacity: 0; }
+  }
+  @media (max-width: 420px) {
+    .art-c { gap: 8px; padding-left: 8px; padding-right: 8px; }
+    .art-c .watcher .pip { width: 68px; height: 68px; }
+    .guy { width: 62px; height: 84px; font-size: 26px; }
+  }
+  @media (max-width: 380px) {
+    .app { padding-left: 12px; padding-right: 12px; }
+    .choices button { min-height: 88px; }
+    .pad button, .choices button, .btn { min-height: 58px; }
+  }
+  .head-actions { display: flex; gap: 8px; align-items: flex-start; }
+  .btn.quiet {
+    background: var(--paper);
+    color: var(--teal-dark);
+    border: 2px solid var(--teal);
+  }
+  .sheet-note { text-align: center; color: var(--muted); margin: 0 0 12px; }
+  .sheet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sheet-slot {
+    aspect-ratio: 1;
+    border: 2px dashed #cfc4b2;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fffdf8;
+    min-width: 0;
+  }
+  .sheet-slot.filled { border-style: solid; border-color: var(--teal); }
+  .sheet-slot.fresh { box-shadow: 0 0 0 3px rgba(28, 107, 102, 0.28); }
+  .sheet-grid.mini { margin: 4px 0 12px; }
+  .sheet-grid.mini .sheet-slot p { font-size: 12px; }
+  .sheet-slot svg { width: 62%; height: auto; }
+  .sheet-slot p { margin: 2px 0 0; font-size: 13px; font-weight: 700; color: var(--teal-dark); }
+  .sheet-slot .frei { color: var(--muted); font-weight: 600; font-size: 14px; }
+  @page { size: A4 portrait; margin: 10mm; }
+  @media print {
+    html, body { background: #fff; border: none; margin: 0; height: auto; }
+    body * { visibility: hidden; }
+    .sheet-print, .sheet-print * { visibility: visible; }
+    .sheet-print h2, .sheet-print .sheet-note, .no-print { display: none !important; }
+    .sheet-print {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 190mm;
+      height: 277mm;
+      margin: 0;
+      padding: 0;
+      box-shadow: none;
+      border: none;
+      background: #fff;
+    }
+    .sheet-grid {
+      width: 190mm;
+      height: 277mm;
+      gap: 6mm;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+    }
+    .sheet-slot {
+      aspect-ratio: auto;
+      width: auto;
+      height: auto;
+      min-height: 0;
+      border-radius: 8mm;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .sheet-slot svg { width: 46mm; height: 46mm; }
+    .sheet-slot p { font-size: 12pt; white-space: nowrap; }
+  }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f3eee4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rechenweg">
+<link rel="apple-touch-icon" href="icon-180.png">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1><span class="mark" aria-hidden="true"></span>Rechenweg</h1>
+        <p class="goal-line" id="goalLine">Weg zur Picknickwiese</p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="sound" id="sheetBtn" data-act="sheet" aria-label="Aufkleberblatt">Blatt</button>
+        <button type="button" class="sound" id="soundBtn" data-act="sound" aria-pressed="false" aria-label="Ton aus">
+          <svg class="speaker" width="22" height="16" viewBox="0 0 22 16" aria-hidden="true"></svg>
+          <span class="sound-label">Ton aus</span>
+        </button>
+      </div>
+    </header>
+    <div id="trail" class="trail"></div>
+    <main id="stage"></main>
+  </div>
+  <p id="live" class="sr" aria-live="polite"></p>
+  <noscript><p class="noscript">Rechenweg geht nur an, wenn der Browser mitmacht.</p></noscript>
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'rechenweg-ziel';
+  var STICKER_KEY = 'rechenweg-blatt';
+  var album = [];
+  var GOALS = [
+    { id: 'wiese', name: 'Picknickwiese', path: 'Weg zur Picknickwiese', arrive: 'Pip ist auf der Picknickwiese angekommen.' },
+    { id: 'baum', name: 'Baumhaus', path: 'Weg zum Baumhaus', arrive: 'Pip ist am Baumhaus angekommen.' },
+    { id: 'turm', name: 'Leuchtturm', path: 'Weg zum Leuchtturm', arrive: 'Pip ist am Leuchtturm angekommen.' }
+  ];
+  var STICKERS = [
+    { id: 'wiese', name: 'Picknick' },
+    { id: 'baum', name: 'Baumhaus' },
+    { id: 'turm', name: 'Leuchtturm' },
+    { id: 'boot', name: 'Papierboot' },
+    { id: 'stern', name: 'Stern' },
+    { id: 'apfel', name: 'Apfel' }
+  ];
+  var BEAT_LINES = [
+    'Die Schnecke läuft, so schnell sie kann. Das Papierboot schwimmt einfach vorbei.',
+    'Ein kleiner Hut landet auf Pip. Überrascht schaut Pip nach oben.',
+    'Die Zahlen strecken sich, gähnen einmal und setzen sich wieder hin.',
+    'Pip will den Stern halten. Der Stern schwebt einfach nach oben.',
+    'Ein Apfel plumpst herunter. Eine kleine Raupe winkt daraus.',
+    'Eine Wolke sucht sich den Hut aus. Nur der Hut wird nass.'
+  ];
+
+  var state = {
+    goal: 0,
+    tasks: [],
+    index: 0,
+    score: 0,
+    tries: 0,
+    entry: '',
+    phase: 'task',
+    locked: false,
+    showHint: 0,
+    revealed: false,
+    feedback: '',
+    returnPhase: 'task',
+    stickerAdded: false,
+    feedbackKind: '',
+    beat: 0,
+    beats: [0, 1],
+    stufe: 0,
+    pendingGoal: 0,
+    timeMs: 0
+  };
+
+  var soundOn = false;
+  var audioCtx = null;
+  var waitId = 0;
+  var waitHandle = 0;
+  var beatDeck = [];
+  var lastLive = '';
+
+  function randInt(a, b) {
+    var lo = a < b ? a : b;
+    var hi = a < b ? b : a;
+    return lo + Math.floor(Math.random() * (hi - lo + 1));
+  }
+
+  function shuffle(list) {
+    var a = list.slice();
+    var i, j, t;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+
+  function hasNum(text, n) {
+    var re = new RegExp('(?:^|\\D)' + String(n) + '(?:\\D|$)');
+    return re.test(String(text));
+  }
+
+  function packTip(name, method, step, answer) {
+    var first = name + '. ' + method;
+    var second = step;
+    if (hasNum(first, answer)) {
+      first = hasNum(name, answer) ? 'Mach diesen Weg in kleinen Schritten.' : (name + '. Mach diesen Weg in kleinen Schritten.');
+    }
+    if (hasNum(second, answer) || second === method) second = 'Rechne nur diesen einen Schritt. Die ganze Zahl sag ich nicht.';
+    return { method: first, step: second, name: name };
+  }
+
+  function chooseAddTip(a, b, sum, cross) {
+    var aOnes = a % 10;
+    var bOnes = b % 10;
+    var small = a < b ? a : b;
+    var big = a < b ? b : a;
+    if (!cross && a === b) {
+      return packTip('Verdoppeln', a + ' und noch einmal ' + a + '.', 'Das ist zweimal dieselbe Zahl.', sum);
+    }
+    if (!cross && Math.abs(a - b) === 1) {
+      return packTip('Nachbaraufgabe', 'Fast das Doppelte von ' + small + '.', 'Verdopple ' + small + '. Danach eins mehr, weil die andere Zahl eins größer ist.', sum);
+    }
+    if (!cross && (aOnes === 5 || bOnes === 5)) {
+      return packTip('Kraft der 5', 'Fünf ist ein guter Halt.', 'Leg zuerst die 5. Dann kommen die anderen Einer dazu.', sum);
+    }
+    if (!cross && b > a) {
+      return packTip('Tauschaufgabe', 'Die Zahlen dürfen den Platz tauschen.', 'Fang mit ' + b + ' an und leg ' + a + ' dazu. Das Ergebnis bleibt gleich.', sum);
+    }
+    if (cross && aOnes + bOnes === 10) {
+      return packTip('Verliebte Zahlen', aOnes + ' und ' + bOnes + ' sind verliebt. Zusammen sind sie 10.', 'Häng diese 10 an die Zehner. Die Einer sind dann 0.', sum);
+    }
+    if (cross) {
+      var toTen = 10 - aOnes;
+      var next = a + toTen;
+      var rest = b - toTen;
+      return packTip('Schrittweise', 'Geh zuerst bis zur nächsten Zehn.', 'Von ' + a + ' noch ' + toTen + ' bis ' + next + '. Danach noch ' + rest + '.', sum);
+    }
+    return packTip('Eine ähnliche Aufgabe', 'Rechne es wie die kleinen Zahlen.', 'Erst die Einer: ' + aOnes + ' und ' + bOnes + '. Dann die Zehner dazu.', sum);
+  }
+
+  function chooseSubTip(a, b, ans, cross) {
+    if (!cross && b > 0 && a === b + b) {
+      return packTip('Halbieren', 'Das ist die Hälfte.', 'Teile ' + a + ' in zwei gleiche Mengen.', ans);
+    }
+    if (!cross && b === (a % 10) && b > 0) {
+      return packTip('Verliebte Zahlen', 'Du nimmst genau die Einer weg.', 'Was bleibt, ist eine glatte Zehnerzahl.', ans);
+    }
+    if (cross) {
+      var down = a % 10;
+      var base = a - down;
+      var rest = b - down;
+      return packTip('Schrittweise', 'Die Einer reichen nicht. Geh zuerst zurück zur nächsten Zehn.', 'Von ' + a + ' zuerst ' + down + ' zurück bis ' + base + '. Dann noch ' + rest + ' zurück.', ans);
+    }
+    if (!cross && (aOnes5(a) || aOnes5(b))) {
+      return packTip('Kraft der 5', 'Fünf hilft auch beim Wegnehmen.', 'Nimm zuerst die 5 weg. Dann den Rest.', ans);
+    }
+    return packTip('Eine ähnliche Aufgabe', 'Erst die Einer, dann die Zehner.', 'Einer: ' + (a % 10) + ' minus ' + (b % 10) + '. Danach die Zehner.', ans);
+  }
+
+  function aOnes5(n) { return n % 10 === 5; }
+
+  function isSoft(t) { return t === 1 || t === 3 || t === 7 || t === 8 || t === 9 || t === 10; }
+  function isHard(t) { return t === 2 || t === 4 || t === 5 || t === 6; }
+
+  function timeMsForType(type) {
+    if (type === 2 || type === 4 || type === 5 || type === 6) return 30000;
+    if (type === 7 || type === 10) return 22000;
+    return 15000;
+  }
+
+  function ensureShape(bag) {
+    var i, j, tmp;
+    for (i = 0; i < 3; i++) {
+      if (!isSoft(bag[i])) {
+        j = -1;
+        for (var k = i + 1; k < bag.length; k++) {
+          if (isSoft(bag[k])) { j = k; break; }
+        }
+        if (j !== -1) { tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp; }
+      }
+    }
+    for (i = 9; i >= 8; i--) {
+      if (!isHard(bag[i])) {
+        j = -1;
+        for (var m = 3; m <= 7; m++) {
+          if (isHard(bag[m])) { j = m; break; }
+        }
+        if (j !== -1) { tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp; }
+      }
+    }
+    return bag;
+  }
+
+  function planTypes() {
+    var easyPick = shuffle([1, 3, 7, 8, 9, 10]).slice(0, 4);
+    var hard = [2, 4, 5, 6];
+    var extras = shuffle([1, 3, 7, 8, 9, 10]).slice(0, 2);
+    var bag = shuffle(easyPick.concat(hard, extras));
+    var weight = { 1: 1, 3: 1.1, 8: 1.3, 9: 1.4, 10: 2, 7: 2.2, 5: 3.1, 6: 3.3, 2: 4.1, 4: 4.4 };
+    bag.sort(function (a, b) {
+      return (weight[a] + Math.random()) - (weight[b] + Math.random());
+    });
+    return ensureShape(bag);
+  }
+
+  function takeTwoBeats() {
+    if (beatDeck.length < 2) {
+      var have = {};
+      var i;
+      for (i = 0; i < beatDeck.length; i++) have[beatDeck[i]] = true;
+      var fresh = shuffle([0, 1, 2, 3, 4, 5]);
+      var add = [];
+      for (i = 0; i < fresh.length; i++) {
+        if (!have[fresh[i]]) add.push(fresh[i]);
+      }
+      beatDeck = add.concat(beatDeck);
+    }
+    return [beatDeck.pop(), beatDeck.pop()];
+  }
+
+  function taskObj(type, prompt, expr, answer, hint, choices) {
+    var tip = hint;
+    if (!tip || typeof tip === 'string') {
+      tip = {
+        method: tip || 'Ein Schritt nach dem anderen.',
+        step: 'Versuch den Weg langsam. Die Zahl sag ich nicht.'
+      };
+    }
+    return {
+      type: type,
+      prompt: prompt,
+      expr: expr,
+      answer: answer,
+      hint: tip,
+      choices: choices || null
+    };
+  }
+
+  function makeAdd(d, cross) {
+    var i, a, aOnes, bOnes, bTens, maxBTens, b, sum, toTen, base, rest, hint;
+    var maxA = d < 0.4 ? 40 : 80;
+    for (i = 0; i < 50; i++) {
+      a = randInt(10, maxA);
+      aOnes = a % 10;
+      if (!cross) {
+        if (aOnes >= 9) bOnes = 0;
+        else bOnes = randInt(0, 9 - aOnes);
+        maxBTens = Math.floor((100 - a - bOnes) / 10);
+        if (maxBTens < 0) continue;
+        if (bOnes === 0 && maxBTens < 1) continue;
+        bTens = randInt(bOnes === 0 ? 1 : 0, Math.min(maxBTens, d < 0.45 ? 2 : 6));
+      } else {
+        if (aOnes === 0) continue;
+        toTen = 10 - aOnes;
+        bOnes = randInt(toTen, 9);
+        if (bOnes === toTen && d < 0.8 && Math.random() < 0.5) bOnes = Math.min(9, toTen + 1);
+        maxBTens = Math.floor((100 - a - bOnes) / 10);
+        if (maxBTens < 0) continue;
+        bTens = randInt(0, Math.min(maxBTens, d < 0.55 ? 0 : 3));
+      }
+      b = bTens * 10 + bOnes;
+      if (b < 1) continue;
+      sum = a + b;
+      if (sum > 100 || sum < 2) continue;
+      if (cross && (aOnes + bOnes < 10)) continue;
+      if (!cross && (aOnes + bOnes >= 10)) continue;
+      if (cross) {
+        toTen = 10 - aOnes;
+        rest = b - toTen;
+        if (rest < 1) continue;
+      }
+      hint = chooseAddTip(a, b, sum, cross);
+      return taskObj(cross ? 2 : 1, 'Rechne.', a + ' + ' + b, sum, hint, null);
+    }
+    return null;
+  }
+
+  function makeSub(d, cross) {
+    var i, aTens, aOnes, bOnes, bTens, a, b, ans, down, base, rest, hint;
+    for (i = 0; i < 60; i++) {
+      if (!cross) {
+        aTens = randInt(1, d < 0.4 ? 3 : 8);
+        aOnes = randInt(1, 9);
+        bOnes = randInt(0, aOnes);
+        bTens = randInt(0, aTens);
+        a = aTens * 10 + aOnes;
+        b = bTens * 10 + bOnes;
+        if (b < 1 || b >= a || a > 100) continue;
+        ans = a - b;
+        if (ans < 1 || ans > 100) continue;
+        if ((a % 10) < (b % 10)) continue;
+        hint = chooseSubTip(a, b, ans, false);
+        return taskObj(3, 'Rechne.', a + ' − ' + b, ans, hint, null);
+      }
+      aTens = randInt(1, d < 0.5 ? 5 : 9);
+      aOnes = randInt(1, 8);
+      bOnes = randInt(aOnes + 1, 9);
+      bTens = randInt(0, d < 0.55 ? 0 : aTens - 1);
+      a = aTens * 10 + aOnes;
+      b = bTens * 10 + bOnes;
+      if (b < 1 || b >= a || a > 100) continue;
+      ans = a - b;
+      if (ans < 1) continue;
+      if ((a % 10) >= (b % 10)) continue;
+      down = a % 10;
+      base = a - down;
+      rest = b - down;
+      if (rest < 1) continue;
+      hint = chooseSubTip(a, b, ans, true);
+      return taskObj(4, 'Rechne.', a + ' − ' + b, ans, hint, null);
+    }
+    return null;
+  }
+
+  function makeMissingAdd(d) {
+    var i, start, add, sum, hint;
+    var startHi = d < 0.45 ? 25 : 70;
+    var addHi = d < 0.45 ? 9 : 15;
+    var sumHi = d < 0.45 ? 40 : 100;
+    for (i = 0; i < 40; i++) {
+      start = randInt(4, startHi);
+      add = randInt(1, addHi);
+      sum = start + add;
+      if (sum > sumHi || sum > 100) continue;
+      if ((start % 10) + add === 10) {
+        hint = packTip('Verliebte Zahlen', 'Die fehlende Zahl ist mit den Einern verliebt.', 'Welche Zahl ergibt mit ' + (start % 10) + ' zusammen 10?', add);
+      } else if (add === start) {
+        hint = packTip('Verdoppeln', 'Es kommt noch einmal dieselbe Zahl dazu.', 'Such das Doppelte von ' + start + '.', add);
+      } else if (Math.abs(add - start) === 1) {
+        hint = packTip('Nachbaraufgabe', 'Die fehlende Zahl liegt neben ' + start + '.', 'Denk an das Doppelte und dann eins daneben.', add);
+      } else {
+        hint = packTip('Schrittweise', 'Zähl die Schritte von der ersten Zahl bis zur letzten.', 'Fang bei ' + start + ' an und zähl bis ' + sum + '.', add);
+      }
+      return taskObj(5, 'Welche Zahl fehlt?', start + ' + ? = ' + sum, add, hint, null);
+    }
+    return null;
+  }
+
+  function makeMissingSub(d) {
+    var i, ans, c, a, b, hint;
+    var minuend = Math.random() < 0.5;
+    if (!minuend) {
+      var cap = d < 0.5 ? 12 : 20;
+      var cHi = d < 0.5 ? 25 : 60;
+      for (i = 0; i < 40; i++) {
+        ans = randInt(1, cap);
+        c = randInt(2, cHi);
+        a = c + ans;
+        if (a > 100) continue;
+        hint = packTip('Schrittweise', 'Zähl von der kleineren Zahl bis zur größeren.', 'Wie viele Schritte sind es von ' + c + ' bis ' + a + '?', ans);
+        return taskObj(6, 'Welche Zahl fehlt?', a + ' − ? = ' + c, ans, hint, null);
+      }
+      return null;
+    }
+    var bHi = d < 0.5 ? 9 : 12;
+    var cHi2 = d < 0.5 ? 12 : 20;
+    for (i = 0; i < 30; i++) {
+      b = randInt(2, bHi);
+      c = randInt(2, cHi2);
+      ans = b + c;
+      if (ans > 100) continue;
+      if (b === c) hint = packTip('Verdoppeln', 'Die beiden Zahlen sind gleich.', b + ' und noch einmal ' + b + '.', ans);
+      else if (b + c === 10 || (b < 10 && c < 10 && b + c === 10)) hint = packTip('Verliebte Zahlen', 'Die beiden Zahlen sind verliebt.', 'Zusammen sind sie 10.', ans);
+      else hint = packTip('Eine ähnliche Aufgabe', 'Die beiden Zahlen gehören zusammen.', 'Zähl von ' + b + ' noch ' + c + ' weiter.', ans);
+      return taskObj(6, 'Welche Zahl fehlt?', '? − ' + b + ' = ' + c, ans, hint, null);
+    }
+    return null;
+  }
+
+  function makeDoubleHalf(d) {
+    var maxN = d < 0.4 ? 20 : 50;
+    var halfMax = Math.floor(maxN / 2);
+    var k = randInt(2, halfMax);
+    var n = k + k;
+    var hint, answer, prompt;
+    if (Math.random() < 0.5) {
+      answer = n + n;
+      prompt = 'Verdopple';
+      hint = packTip('Verdoppeln', 'Leg dieselbe Menge noch einmal dazu.', n + ' und noch einmal ' + n + '.', answer);
+    } else {
+      answer = k;
+      prompt = 'Die Hälfte von';
+      hint = packTip('Halbieren', 'Teile in zwei gleiche Mengen.', 'Welche Zahl passt zweimal in ' + n + '?', answer);
+    }
+    return taskObj(7, prompt, String(n), answer, hint, null);
+  }
+
+  function makeToTen(d) {
+    var i, n, gap, target, hint;
+    var hi = d < 0.4 ? 39 : 99;
+    for (i = 0; i < 30; i++) {
+      n = randInt(1, hi);
+      if (n % 10 === 0) continue;
+      gap = 10 - (n % 10);
+      target = n + gap;
+      if (target > 100 || gap < 1 || gap > 9) continue;
+      hint = packTip('Verliebte Zahlen', 'Schau nur auf die Einer. Sie suchen ihre verliebte Zahl.', 'Welche Zahl ergibt mit ' + (n % 10) + ' zusammen 10?', gap);
+      return taskObj(8, 'Wie viel fehlt bis ' + target + '?', String(n), gap, hint, null);
+    }
+    return null;
+  }
+
+  function makeCompare(d) {
+    var i, x, y, hi, bigger, opts, hint, tens, o1, o2;
+    for (i = 0; i < 30; i++) {
+      if (d > 0.55 && Math.random() < 0.6) {
+        tens = randInt(1, 9);
+        o1 = randInt(0, 7);
+        o2 = randInt(o1 + 1, 9);
+        x = tens * 10 + o1;
+        y = tens * 10 + o2;
+      } else {
+        hi = d < 0.35 ? 40 : (d < 0.7 ? 80 : 100);
+        x = randInt(2, hi);
+        y = randInt(2, hi);
+      }
+      if (x === y || x > 100 || y > 100 || x < 1 || y < 1) continue;
+      bigger = x > y ? x : y;
+      opts = Math.random() < 0.5 ? [x, y] : [y, x];
+      if (Math.floor(x / 10) !== Math.floor(y / 10)) {
+        hint = { method: 'Schau zuerst auf die Zehner.', step: 'Die Zahl mit der größeren Zehnerstelle ist mehr.', name: '' };
+      } else {
+        hint = { method: 'Die Zehner sind gleich.', step: 'Schau nur auf die Einer. Welche ist größer?', name: '' };
+      }
+      return taskObj(9, 'Was ist mehr?', '', bigger, hint, opts);
+    }
+    return null;
+  }
+
+  function makePattern(d) {
+    var steps = d < 0.35 ? [10, 5] : (d < 0.7 ? [5, 10, 2] : [2, 5, 10]);
+    var step = steps[randInt(0, steps.length - 1)];
+    var maxStart = 100 - (step + step + step + step);
+    var maxK = Math.floor(maxStart / step);
+    var cap = maxK;
+    if (d < 0.45) {
+      var softCap = Math.floor(Math.min(maxStart, 60) / step);
+      if (softCap >= 1) cap = softCap;
+    }
+    if (cap < 1) cap = 1;
+    var k = randInt(1, cap);
+    var start = k * step;
+    var a = start;
+    var b = a + step;
+    var c = b + step;
+    var e = c + step;
+    var answer = e + step;
+    if (answer > 100 || a < 1) return null;
+    var expr = a + ', ' + b + ', ' + c + ', ' + e + ', ?';
+    var hint = packTip('Eine ähnliche Aufgabe', 'Der Sprung von Zahl zu Zahl bleibt gleich.', 'Es kommt immer ' + step + ' dazu.', answer);
+    return taskObj(10, 'Welche Zahl kommt jetzt?', expr, answer, hint, null);
+  }
+
+  function fallback(type) {
+    var table = {
+      1: taskObj(1, 'Rechne.', '23 + 14', 37, 'Erst die Einer: 3 und 4. Dann die Zehner.', null),
+      2: taskObj(2, 'Rechne.', '27 + 8', 35, 'Erst bis 30 (noch 3). Danach noch 5.', null),
+      3: taskObj(3, 'Rechne.', '48 − 15', 33, 'Erst die Einer: 8 minus 5. Dann die Zehner.', null),
+      4: taskObj(4, 'Rechne.', '42 − 7', 35, 'Von 42 zuerst 2 zurück bis 40. Dann noch 5 zurück.', null),
+      5: taskObj(5, 'Welche Zahl fehlt?', '18 + ? = 25', 7, 'Zähl von 18 bis 25. Wie viele Schritte?', null),
+      6: taskObj(6, 'Welche Zahl fehlt?', '20 − ? = 12', 8, 'Wie viele Schritte sind es von 12 bis 20?', null),
+      7: taskObj(7, 'Verdopple', '12', 24, '12 und noch einmal 12.', null),
+      8: taskObj(8, 'Wie viel fehlt bis 40?', '36', 4, 'Zähl von 36 bis 40.', null),
+      9: taskObj(9, 'Was ist mehr?', '', 52, 'Schau zuerst auf die Zehner.', [47, 52]),
+      10: taskObj(10, 'Welche Zahl kommt jetzt?', '2, 4, 6, 8, ?', 10, 'Es kommt immer 2 dazu.', null)
+    };
+    return table[type];
+  }
+
+  function makeTask(type, index) {
+    var d = index / 9;
+    var task = null;
+    if (type === 1) task = makeAdd(d, false);
+    else if (type === 2) task = makeAdd(d, true);
+    else if (type === 3) task = makeSub(d, false);
+    else if (type === 4) task = makeSub(d, true);
+    else if (type === 5) task = makeMissingAdd(d);
+    else if (type === 6) task = makeMissingSub(d);
+    else if (type === 7) task = makeDoubleHalf(d);
+    else if (type === 8) task = makeToTen(d);
+    else if (type === 9) task = makeCompare(d);
+    else if (type === 10) task = makePattern(d);
+    return task || fallback(type);
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function exprClass(s) {
+    var n = s.length;
+    if (n <= 3) return 'expr xl';
+    if (n <= 8) return 'expr lg';
+    if (n <= 14) return 'expr md';
+    return 'expr sm';
+  }
+
+  function pipMarkup(mood) {
+    var up = mood === 'up';
+    var surprised = mood === 'surprised';
+    var happy = mood === 'happy';
+    var eyeY = up ? 56 : 62;
+    var eyeR = surprised ? 5.2 : 3.6;
+    var brow = surprised
+      ? '<path d="M38 48 L48 52" fill="none" stroke="#2c2825" stroke-width="2.2" stroke-linecap="round"/><path d="M82 48 L72 52" fill="none" stroke="#2c2825" stroke-width="2.2" stroke-linecap="round"/>'
+      : '';
+    var mouth = happy
+      ? '<path d="M46 80 Q60 94 74 80" fill="none" stroke="#2c2825" stroke-width="2.6" stroke-linecap="round"/>'
+      : (surprised
+        ? '<ellipse cx="60" cy="84" rx="6.5" ry="7.5" fill="#fffdf8" stroke="#2c2825" stroke-width="2.3"/>'
+        : '<path d="M48 80 Q60 89 72 80" fill="none" stroke="#2c2825" stroke-width="2.6" stroke-linecap="round"/>');
+    return '<circle cx="60" cy="68" r="36" fill="#fffdf8" stroke="#2c2825" stroke-width="3"/>' +
+      '<ellipse cx="40" cy="76" rx="6" ry="3.2" fill="#f0c2b4"/>' +
+      '<ellipse cx="80" cy="76" rx="6" ry="3.2" fill="#f0c2b4"/>' +
+      brow +
+      '<circle cx="46" cy="' + eyeY + '" r="' + eyeR + '" fill="#2c2825"/>' +
+      '<circle cx="74" cy="' + eyeY + '" r="' + eyeR + '" fill="#2c2825"/>' +
+      '<circle cx="47.4" cy="' + (eyeY - 1.5) + '" r="1.3" fill="#fffdf8"/>' +
+      '<circle cx="75.4" cy="' + (eyeY - 1.5) + '" r="1.3" fill="#fffdf8"/>' +
+      mouth +
+      '<path d="M30 92 Q60 106 90 92" fill="none" stroke="#1c6b66" stroke-width="6.5" stroke-linecap="round"/>' +
+      '<circle cx="88" cy="99" r="4.2" fill="#1c6b66"/>';
+  }
+
+  function pipSVG(mood, size) {
+    return '<svg class="pip" width="' + size + '" height="' + size + '" viewBox="0 0 120 120" aria-hidden="true">' +
+      '<ellipse cx="60" cy="114" rx="26" ry="5" fill="#e6dccb"/>' +
+      pipMarkup(mood) +
+      '</svg>';
+  }
+
+  function goalGlyph(id) {
+    if (id === 'wiese') {
+      return '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect x="6" y="16" width="20" height="10" rx="2" fill="#fffdf8" stroke="#1c6b66" stroke-width="1.6"/><path d="M6 20 H26" stroke="#1c6b66" stroke-width="2"/><circle cx="22" cy="12" r="4" fill="none" stroke="#1c6b66" stroke-width="1.6"/><path d="M22 8c2-2 4 0 2 2" fill="#1c6b66"/></svg>';
+    }
+    if (id === 'baum') {
+      return '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect x="14" y="18" width="4" height="10" fill="#2c2825"/><circle cx="16" cy="13" r="8" fill="#e5f3f1" stroke="#1c6b66" stroke-width="1.6"/><polygon points="10,16 16,8 22,16" fill="#1c6b66"/></svg>';
+    }
+    return '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect x="13" y="10" width="8" height="16" fill="#fffdf8" stroke="#2c2825" stroke-width="1.5"/><rect x="13" y="15" width="8" height="3" fill="#1c6b66"/><polygon points="11,10 17,4 23,10" fill="#1c6b66"/></svg>';
+  }
+
+  function boatSVG() {
+    return '<svg width="132" height="78" viewBox="0 0 132 78" aria-hidden="true">' +
+      '<path d="M16 50 H116 L100 66 H32 Z" fill="#fffdf8" stroke="#2c2825" stroke-width="2.4" stroke-linejoin="round"/>' +
+      '<path d="M66 14 V50" stroke="#2c2825" stroke-width="2.2"/>' +
+      '<path d="M66 18 L104 48 H66 Z" fill="#e5f3f1" stroke="#1c6b66" stroke-width="2.2" stroke-linejoin="round"/>' +
+      '<path d="M28 56 H104" stroke="#e4d9c8" stroke-width="2"/>' +
+      '</svg>';
+  }
+
+  function snailSVG() {
+    return '<svg width="120" height="68" viewBox="0 0 120 68" aria-hidden="true">' +
+      '<ellipse cx="52" cy="50" rx="36" ry="12" fill="#fffdf8" stroke="#2c2825" stroke-width="2.2"/>' +
+      '<circle cx="78" cy="36" r="18" fill="#e5f3f1" stroke="#1c6b66" stroke-width="2.2"/>' +
+      '<circle cx="78" cy="36" r="8" fill="none" stroke="#1c6b66" stroke-width="2"/>' +
+      '<path d="M28 46 Q22 30 18 22" fill="none" stroke="#2c2825" stroke-width="2" stroke-linecap="round"/>' +
+      '<path d="M40 44 Q38 28 44 20" fill="none" stroke="#2c2825" stroke-width="2" stroke-linecap="round"/>' +
+      '<circle cx="18" cy="20" r="3.2" fill="#2c2825"/>' +
+      '<circle cx="44" cy="18" r="3.2" fill="#2c2825"/>' +
+      '<path d="M24 50 Q30 54 36 50" fill="none" stroke="#2c2825" stroke-width="1.8" stroke-linecap="round"/>' +
+      '</svg>';
+  }
+
+  function birdSVG() {
+    return '<svg width="92" height="54" viewBox="0 0 92 54" aria-hidden="true">' +
+      '<path class="wing" d="M34 30 C16 18 18 8 40 22" fill="#e5f3f1" stroke="#2c2825" stroke-width="2"/>' +
+      '<ellipse cx="48" cy="30" rx="24" ry="13" fill="#fffdf8" stroke="#2c2825" stroke-width="2.2"/>' +
+      '<circle cx="60" cy="26" r="2.3" fill="#2c2825"/>' +
+      '<path d="M70 30 L88 25 L72 36 Z" fill="#1c6b66"/>' +
+      '</svg>';
+  }
+
+  function hatSVG() {
+    return '<svg width="52" height="36" viewBox="0 0 52 36" aria-hidden="true">' +
+      '<ellipse cx="26" cy="28" rx="20" ry="6" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/>' +
+      '<rect x="14" y="6" width="24" height="18" rx="4" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/>' +
+      '<rect x="14" y="16" width="24" height="5" fill="#1c6b66"/>' +
+      '</svg>';
+  }
+
+  function beatHTML(which) {
+    if (which === 0) {
+      return '<div class="art art-a">' +
+        '<div class="water"></div><div class="bank"></div>' +
+        '<div class="boat">' + boatSVG() + '</div>' +
+        '<div class="snail"><div class="bubble">Ich schaffe das!</div>' + snailSVG() + '</div>' +
+        '<div class="watcher">' + pipSVG('happy', 78) + '</div>' +
+        '</div>' +
+        '<p class="caption">Die Schnecke läuft, so schnell sie kann. Das Papierboot schwimmt einfach vorbei.</p>';
+    }
+    if (which === 1) {
+      return '<div class="art art-b">' +
+        '<div class="bird">' + birdSVG() + '</div>' +
+        '<div class="hat">' + hatSVG() + '</div>' +
+        '<div class="pip-slot">' + pipSVG('up', 148) + '</div>' +
+        '</div>' +
+        '<p class="caption">Ein kleiner Hut landet auf Pip. Überrascht schaut Pip nach oben.</p>';
+    }
+    if (which === 2) {
+      return '<div class="art art-c">' +
+        '<div class="guys">' +
+        '<div class="guy" style="--d:0s">2</div>' +
+        '<div class="guy" style="--d:.18s">5</div>' +
+        '<div class="guy" style="--d:.36s">8</div>' +
+        '</div>' +
+        '<div class="watcher">' + pipSVG('happy', 86) + '</div>' +
+        '</div>' +
+        '<p class="caption">' + BEAT_LINES[2] + '</p>';
+    }
+    if (which === 3) {
+      return '<div class="art art-d">' +
+        '<div class="star"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><polygon points="32,6 38,24 58,26 42,38 48,58 32,46 16,58 22,38 6,26 26,24" fill="#fffdf8" stroke="#1c6b66" stroke-width="2"/></svg></div>' +
+        '<div class="pip-slot">' + pipSVG('up', 120) + '</div>' +
+        '</div><p class="caption">' + BEAT_LINES[3] + '</p>';
+    }
+    if (which === 4) {
+      return '<div class="art art-e">' +
+        '<div class="apple"><svg width="92" height="78" viewBox="0 0 92 78" aria-hidden="true"><circle cx="46" cy="46" r="26" fill="#fffdf8" stroke="#1c6b66" stroke-width="2.4"/><path d="M46 22 V10" stroke="#2c2825" stroke-width="2.4" stroke-linecap="round"/><path d="M46 16 C62 6 74 20 58 26" fill="#1c6b66"/></svg></div>' +
+        '<div class="worm"><svg width="28" height="22" viewBox="0 0 28 22" aria-hidden="true"><circle cx="8" cy="12" r="5" fill="#1c6b66"/><circle cx="16" cy="10" r="5" fill="#1c6b66"/><circle cx="22" cy="8" r="3.2" fill="#fffdf8" stroke="#2c2825" stroke-width="1.4"/><circle cx="23" cy="7.2" r="1" fill="#2c2825"/></svg></div>' +
+        '<div class="pip-slot">' + pipSVG('surprised', 108) + '</div>' +
+        '</div><p class="caption">' + BEAT_LINES[4] + '</p>';
+    }
+    var drops = '';
+    var d;
+    for (d = 0; d < 4; d++) {
+      drops += '<i class="drop" style="left:' + (d * 8) + 'px;animation-delay:' + (d * 0.25) + 's"></i>';
+    }
+    return '<div class="art art-f">' +
+      '<div class="cloud"><svg width="96" height="54" viewBox="0 0 96 54" aria-hidden="true"><ellipse cx="38" cy="32" rx="24" ry="16" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/><ellipse cx="60" cy="28" rx="26" ry="18" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/></svg></div>' +
+      '<div class="drops">' + drops + '</div>' +
+      '<div class="pip-slot">' + pipSVG('up', 116) + '<div class="hat" style="position:absolute;left:34px;top:8px">' + hatSVG() + '</div></div>' +
+      '</div><p class="caption">' + BEAT_LINES[5] + '</p>';
+  }
+
+  function picnicScene() {
+    return '<div class="land wiese"><svg class="scene" viewBox="0 0 360 220" aria-hidden="true">' +
+      '<rect width="360" height="220" fill="#e7f4f2"/>' +
+      '<path d="M0 150 C70 132 150 168 220 150 C280 136 320 150 360 142 V220 H0 Z" fill="#d3ebe6"/>' +
+      '<path d="M0 176 C100 164 180 188 360 170 V220 H0 Z" fill="#c5e0da"/>' +
+      '<g transform="translate(150,124)">' +
+      '<rect x="0" y="28" width="96" height="48" rx="6" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/>' +
+      '<rect x="0" y="42" width="96" height="8" fill="#1c6b66"/>' +
+      '<circle cx="78" cy="18" r="11" fill="#fffdf8" stroke="#1c6b66" stroke-width="2"/>' +
+      '<path d="M78 8 C86 4 90 12 82 12" fill="#1c6b66"/>' +
+      '</g></svg><div class="stand">' + pipSVG('happy', 112) + '</div></div>';
+  }
+
+  function treeScene() {
+    return '<div class="land baum"><svg class="scene" viewBox="0 0 360 220" aria-hidden="true">' +
+      '<rect width="360" height="220" fill="#f4f7f4"/>' +
+      '<path d="M0 180 C80 168 160 190 360 172 V220 H0 Z" fill="#d7ebe6"/>' +
+      '<rect x="196" y="96" width="18" height="86" fill="#2c2825"/>' +
+      '<circle cx="176" cy="86" r="34" fill="#e5f3f1" stroke="#1c6b66" stroke-width="3"/>' +
+      '<circle cx="220" cy="74" r="40" fill="#fffdf8" stroke="#1c6b66" stroke-width="3"/>' +
+      '<circle cx="252" cy="98" r="26" fill="#e5f3f1" stroke="#1c6b66" stroke-width="3"/>' +
+      '<g transform="translate(214,78)">' +
+      '<polygon points="2,20 32,0 62,20" fill="#1c6b66"/>' +
+      '<rect x="10" y="20" width="44" height="30" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/>' +
+      '<rect x="26" y="32" width="12" height="18" fill="#1c6b66"/>' +
+      '</g>' +
+      '<g stroke="#2c2825" stroke-width="2" fill="none">' +
+      '<line x1="188" y1="168" x2="204" y2="112"/>' +
+      '<line x1="202" y1="168" x2="218" y2="112"/>' +
+      '<line x1="190" y1="132" x2="208" y2="128"/>' +
+      '<line x1="192" y1="146" x2="210" y2="142"/>' +
+      '<line x1="194" y1="160" x2="206" y2="156"/>' +
+      '</g></svg><div class="stand">' + pipSVG('happy', 108) + '</div></div>';
+  }
+
+  function lightScene() {
+    return '<div class="land turm"><svg class="scene" viewBox="0 0 360 220" aria-hidden="true">' +
+      '<rect width="360" height="220" fill="#eef6f5"/>' +
+      '<polygon points="250,78 360,28 360,120" fill="#1c6b66" opacity="0.13"/>' +
+      '<path d="M0 168 Q90 150 180 168 T360 158 V220 H0 Z" fill="#d5ebe6"/>' +
+      '<rect x="214" y="70" width="42" height="100" fill="#fffdf8" stroke="#2c2825" stroke-width="2.4"/>' +
+      '<rect x="214" y="92" width="42" height="12" fill="#1c6b66"/>' +
+      '<rect x="214" y="120" width="42" height="12" fill="#1c6b66"/>' +
+      '<rect x="214" y="148" width="42" height="12" fill="#1c6b66"/>' +
+      '<polygon points="206,70 235,40 264,70" fill="#1c6b66"/>' +
+      '<rect x="222" y="46" width="26" height="24" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/>' +
+      '<circle cx="235" cy="58" r="4" fill="#1c6b66"/>' +
+      '<path d="M16 186 Q36 178 56 186 T96 186" fill="none" stroke="#1c6b66" stroke-width="2" opacity="0.45"/>' +
+      '</svg><div class="stand">' + pipSVG('happy', 112) + '</div></div>';
+  }
+
+  function stickerSVG(id) {
+    var icon;
+    if (id === 'wiese') {
+      icon = '<rect x="38" y="58" width="44" height="22" rx="3" fill="#fffdf8" stroke="#1c6b66" stroke-width="2"/><rect x="38" y="66" width="44" height="5" fill="#1c6b66"/><circle cx="74" cy="50" r="7" fill="none" stroke="#1c6b66" stroke-width="2"/><path d="M74 43c3-3 6 0 3 3" fill="#1c6b66"/>';
+    } else if (id === 'baum') {
+      icon = '<rect x="56" y="62" width="8" height="22" fill="#2c2825"/><circle cx="60" cy="52" r="16" fill="#e5f3f1" stroke="#1c6b66" stroke-width="2"/><polygon points="46,58 60,40 74,58" fill="#1c6b66"/>';
+    } else if (id === 'turm') {
+      icon = '<rect x="50" y="46" width="20" height="40" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/><rect x="50" y="58" width="20" height="6" fill="#1c6b66"/><rect x="50" y="72" width="20" height="6" fill="#1c6b66"/><polygon points="46,46 60,32 74,46" fill="#1c6b66"/>';
+    } else if (id === 'boot') {
+      icon = '<path d="M30 64 H90 L78 80 H42 Z" fill="#fffdf8" stroke="#2c2825" stroke-width="2"/><path d="M60 36 V64" stroke="#2c2825" stroke-width="2"/><path d="M60 40 L86 64 H60 Z" fill="#e5f3f1" stroke="#1c6b66" stroke-width="2"/>';
+    } else if (id === 'stern') {
+      icon = '<polygon points="60,30 67,50 88,52 72,66 77,86 60,74 43,86 48,66 32,52 53,50" fill="#e5f3f1" stroke="#1c6b66" stroke-width="2"/>';
+    } else {
+      icon = '<circle cx="60" cy="66" r="20" fill="#fffdf8" stroke="#1c6b66" stroke-width="2"/><path d="M60 46 V36" stroke="#2c2825" stroke-width="2" stroke-linecap="round"/><path d="M60 40 C72 32 80 42 70 48" fill="#1c6b66"/>';
+    }
+    return '<svg width="124" height="124" viewBox="0 0 120 120" aria-hidden="true">' +
+      '<circle cx="60" cy="60" r="54" fill="#fffdf8" stroke="#1c6b66" stroke-width="3"/>' +
+      '<circle cx="60" cy="60" r="46" fill="none" stroke="#1c6b66" stroke-width="1.4" stroke-dasharray="3 4"/>' +
+      icon + '</svg>';
+  }
+
+  function confettiHTML() {
+    var colors = ['#1c6b66', '#8fc4be', '#fffdf8', '#d9cbb3'];
+    var html = '<div class="confetti" aria-hidden="true">';
+    var i, left, delay, dur, size, rot, radius;
+    for (i = 0; i < 16; i++) {
+      left = Math.round(Math.random() * 100);
+      delay = (Math.random() * 0.25).toFixed(2);
+      dur = (1.5 + Math.random() * 0.7).toFixed(2);
+      size = 7 + Math.round(Math.random() * 7);
+      rot = Math.round(Math.random() * 180);
+      radius = i % 2 === 0 ? '50%' : '2px';
+      html += '<i style="left:' + left + '%;animation-delay:' + delay + 's;animation-duration:' + dur +
+        's;width:' + size + 'px;height:' + Math.round(size * 0.72) + 'px;background:' + colors[i % 4] +
+        ';border-radius:' + radius + ';--r:' + rot + 'deg"></i>';
+    }
+    return html + '</div>';
+  }
+
+  function speakerPaths(on) {
+    var base = '<path d="M3 6 H7 L11 3 V13 L7 10 H3 Z" fill="currentColor"/>';
+    if (!on) {
+      return base + '<path d="M14 5 L20 11 M20 5 L14 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
+    }
+    return base + '<path d="M14 5.5 C16.2 7.2 16.2 8.8 14 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
+  }
+
+  function paintSound() {
+    var b = document.getElementById('soundBtn');
+    if (!b) return;
+    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+    b.setAttribute('aria-label', soundOn ? 'Ton an' : 'Ton aus');
+    b.querySelector('.sound-label').textContent = soundOn ? 'Ton an' : 'Ton aus';
+    b.querySelector('.speaker').innerHTML = speakerPaths(soundOn);
+  }
+
+  function trailInner() {
+    var g = GOALS[state.goal];
+    var dots = '';
+    var i;
+    for (i = 0; i < 10; i++) dots += '<span class="dot"></span>';
+    return '<div class="dots">' + dots + '</div><div class="goal-mark">' + goalGlyph(g.id) + '</div>';
+  }
+
+  function paintTrail() {
+    var trail = document.getElementById('trail');
+    if (!trail) return;
+    if (state.phase === 'interlude' || state.phase === 'sheet' || state.phase === 'pick') {
+      trail.hidden = true;
+      return;
+    }
+    trail.hidden = false;
+    if (trail.getAttribute('data-goal') !== String(state.goal)) {
+      trail.setAttribute('data-goal', String(state.goal));
+      trail.innerHTML = trailInner();
+    }
+    var dots = trail.querySelectorAll('.dot');
+    var i;
+    for (i = 0; i < dots.length; i++) {
+      if (i < state.score) dots[i].className = 'dot on';
+      else dots[i].className = 'dot';
+    }
+  }
+
+  function fieldHTML() {
+    if (state.revealed) return esc(state.tasks[state.index].answer);
+    if (!state.entry) return '<span class="caret"></span>';
+    return esc(state.entry) + '<span class="caret"></span>';
+  }
+
+  function padHTML() {
+    var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'weg', '0', 'ok'];
+    var html = '<div class="pad">';
+    var i, k;
+    for (i = 0; i < keys.length; i++) {
+      k = keys[i];
+      if (k === 'weg') html += '<button type="button" class="ghost" data-act="del" aria-label="Löschen">weg</button>';
+      else if (k === 'ok') html += '<button type="button" class="go" data-act="ok" aria-label="Prüfen">fertig</button>';
+      else html += '<button type="button" data-act="digit" data-n="' + k + '" aria-label="' + k + '">' + k + '</button>';
+    }
+    return html + '</div>';
+  }
+
+  function taskHTML() {
+    var task = state.tasks[state.index];
+    var mood = state.feedbackKind === 'ok' ? 'happy' : (state.revealed ? 'calm' : 'calm');
+    if (state.revealed) mood = 'calm';
+    var html = '<div class="card">';
+    html += '<p class="aufgabe">Aufgabe ' + (state.index + 1) + ' von 10</p>';
+    html += '<p class="stufe-quiet">Stufe ' + state.stufe + '</p>';
+    if (state.stufe === 3) html += barHTML();
+    var pipMood = state.feedbackKind === 'ok' ? 'happy' : (state.showHint ? 'up' : 'calm');
+    html += '<div class="pip-wrap">' + pipSVG(pipMood, 84) + '</div>';
+    html += '<p class="prompt">' + esc(task.prompt) + '</p>';
+    if (!task.choices) {
+      var shown = state.revealed ? task.expr : task.expr;
+      html += '<p class="' + exprClass(shown) + '">' + esc(shown).replace('?', '<span class="q">?</span>') + '</p>';
+      var fieldClass = 'field' + (state.feedbackKind === 'ok' ? ' ok' : '') + (state.revealed ? ' show' : '');
+      html += '<div class="' + fieldClass + '" aria-hidden="true">' + fieldHTML() + '</div>';
+    } else {
+      html += '<div class="choices">';
+      var c, cls;
+      for (c = 0; c < task.choices.length; c++) {
+        cls = 'choice';
+        if (state.locked && !state.revealed && task.choices[c] === task.answer) cls += ' picked';
+        html += '<button type="button" class="' + cls + '" data-act="choice" data-n="' + task.choices[c] + '">' + task.choices[c] + '</button>';
+      }
+      html += '</div>';
+    }
+    var msgClass = 'msg' + (state.feedback ? ' ' + state.feedbackKind : '');
+    html += '<p class="' + msgClass + '">' + (state.feedback ? esc(state.feedback) : '&nbsp;') + '</p>';
+    if (state.stufe === 1 && state.showHint && !state.revealed) {
+      var tip = task.hint;
+      var said = state.showHint >= 2 ? tip.step : tip.method;
+      html += '<p class="hint"><b>Pip sagt: </b>' + esc(said) + '</p>';
+    }
+    if (state.stufe === 1 && !state.revealed && !state.locked && state.showHint < 2) {
+      html += '<button type="button" class="btn quiet help-btn" data-act="help">' +
+        (state.showHint ? 'Noch ein Tipp' : 'Pip hilft') + '</button>';
+    }
+    if (state.revealed) html += '<button type="button" class="btn" data-act="next">Weiter</button>';
+    else if (!task.choices) html += padHTML();
+    html += '</div>';
+    return html;
+  }
+
+  function interludeHTML() {
+    return '<div class="card">' + beatHTML(state.beat) +
+      '<button type="button" class="btn" data-act="skip">Weiter</button></div>';
+  }
+
+  function sheetLine() {
+    var n = readStickers().length;
+    if (state.stickerAdded) return 'Der Aufkleber sitzt auf dem Blatt. ' + n + ' von 6.';
+    if (n >= 6) return 'Das Blatt ist voll. Druck es aus.';
+    return 'Auf dem Blatt: ' + n + ' von 6.';
+  }
+
+  function slotsHTML(mini) {
+    var list = readStickers();
+    var html = '<div class="sheet-grid' + (mini ? ' mini' : '') + '">';
+    var i, g, cls;
+    for (i = 0; i < 6; i++) {
+      if (i < list.length) {
+        g = stickerById(list[i]);
+        cls = 'sheet-slot filled';
+        if (mini && state.stickerAdded && i === list.length - 1) cls += ' fresh';
+        html += '<div class="' + cls + '">' + stickerSVG(g.id) + '<p>' + esc(g.name) + '</p></div>';
+      } else {
+        html += '<div class="sheet-slot"><p class="frei">frei</p></div>';
+      }
+    }
+    return html + '</div>';
+  }
+
+  function sheetHTML() {
+    var list = readStickers();
+    var html = '<div class="card sheet-print">';
+    html += '<h2>Aufkleberblatt</h2>';
+    html += '<p class="sheet-note">' + list.length + ' von 6. Sechs Aufkleber füllen eine A4-Seite.</p>';
+    html += slotsHTML(false);
+    if (list.length >= 6) {
+      html += '<button type="button" class="btn no-print" data-act="print">Drucken</button>';
+      html += '<button type="button" class="btn quiet no-print" data-act="newsheet">Neues Blatt</button>';
+    }
+    html += '<button type="button" class="btn quiet no-print" data-act="back">Zurück</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function rewardHTML() {
+    var g = GOALS[state.goal];
+    var scene = g.id === 'wiese' ? picnicScene() : (g.id === 'baum' ? treeScene() : lightScene());
+    return '<div class="card reward">' + confettiHTML() +
+      '<h2>Angekommen.</h2>' +
+      scene +
+      '<p class="arrive">' + esc(g.arrive) + '</p>' +
+      '<p class="score-line"><span>' + state.score + '</span> von 10 allein geschafft.</p>' +
+      '<p class="stufe-quiet">Stufe ' + state.stufe + '</p>' +
+      '<p class="eyebrow">Aufkleberblatt</p>' +
+      slotsHTML(true) +
+      '<p class="sheet-note">' + sheetLine() + '</p>' +
+      '<button type="button" class="btn quiet" data-act="sheet">Aufkleberblatt</button>' +
+      '<button type="button" class="btn" data-act="again">Noch eine Runde</button></div>';
+  }
+
+  function setLive(text) {
+    if (text === lastLive) return;
+    lastLive = text;
+    var node = document.getElementById('live');
+    if (node) node.textContent = text;
+  }
+
+  function render() {
+    var goal = GOALS[state.goal];
+    var line = document.getElementById('goalLine');
+    if (line) line.textContent = goal.path;
+    paintTrail();
+    paintSound();
+    var sheetBtn = document.getElementById('sheetBtn');
+    if (sheetBtn) sheetBtn.textContent = 'Blatt ' + readStickers().length + '/6';
+    var stage = document.getElementById('stage');
+    if (!stage) return;
+    if (state.phase === 'sheet') {
+      stage.innerHTML = sheetHTML();
+      setLive('Aufkleberblatt. ' + readStickers().length + ' von 6.');
+      return;
+    }
+    if (state.phase === 'pick') {
+      stage.innerHTML = pickHTML();
+      setLive('Wähl eine Stufe. ' + goal.path);
+      return;
+    }
+    if (state.phase === 'interlude') {
+      stage.innerHTML = interludeHTML();
+      setLive(BEAT_LINES[state.beat] || '');
+      return;
+    }
+    if (state.phase === 'reward') {
+      stage.innerHTML = rewardHTML();
+      setLive(goal.arrive + ' ' + state.score + ' von 10 allein geschafft.');
+      return;
+    }
+    stage.innerHTML = taskHTML();
+    var task = state.tasks[state.index];
+    if (state.feedback) {
+      var heard = '';
+      if (state.stufe === 1 && state.showHint && !state.revealed && task.hint) {
+        heard = ' ' + (state.showHint >= 2 ? task.hint.step : task.hint.method);
+      }
+      setLive(state.feedback + heard);
+    } else if (task.choices) {
+      setLive('Aufgabe ' + (state.index + 1) + '. ' + task.prompt + ' ' + task.choices[0] + ' oder ' + task.choices[1]);
+    } else {
+      setLive('Aufgabe ' + (state.index + 1) + '. ' + task.prompt + ' ' + task.expr);
+    }
+  }
+
+  function later(fn, ms) {
+    window.clearTimeout(waitHandle);
+    var id = ++waitId;
+    waitHandle = window.setTimeout(function () {
+      if (id === waitId) fn();
+    }, ms);
+  }
+
+  function cancelWait() {
+    waitId++;
+    window.clearTimeout(waitHandle);
+  }
+
+  function getCtx() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone(freq, when, dur, gainVal) {
+    var ctx = getCtx();
+    if (!ctx) return;
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, when);
+    g.gain.setValueAtTime(gainVal, when);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start(when);
+    o.stop(when + dur + 0.02);
+  }
+
+  function beepOk() {
+    if (!soundOn) return;
+    var ctx = getCtx();
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    tone(523, t, 0.1, 0.03);
+    tone(659, t + 0.09, 0.14, 0.028);
+  }
+
+  function beepNo() {
+    if (!soundOn) return;
+    var ctx = getCtx();
+    if (!ctx) return;
+    tone(294, ctx.currentTime, 0.12, 0.022);
+  }
+
+  function beepReward() {
+    if (!soundOn) return;
+    var ctx = getCtx();
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    tone(523, t, 0.1, 0.03);
+    tone(659, t + 0.11, 0.1, 0.03);
+    tone(784, t + 0.22, 0.18, 0.03);
+  }
+
+  var clock = { raf: 0, start: 0, left: 0, total: 0, running: false };
+
+  function barFraction() {
+    if (!clock.total) return 1;
+    var left = clock.left;
+    if (clock.running) left = clock.left - (Date.now() - clock.start);
+    if (left < 0) left = 0;
+    if (left > clock.total) left = clock.total;
+    return left / clock.total;
+  }
+
+  function paintBar() {
+    var el = document.getElementById('timeFill');
+    if (!el) return;
+    el.style.width = (barFraction() * 100) + '%';
+  }
+
+  function barHTML() {
+    return '<div class="timebar" aria-hidden="true"><span id="timeFill" style="width:' +
+      (barFraction() * 100) + '%"></span></div>';
+  }
+
+  function stopClock() {
+    clock.running = false;
+    if (clock.raf) {
+      window.cancelAnimationFrame(clock.raf);
+      clock.raf = 0;
+    }
+  }
+
+  function pauseClock() {
+    if (clock.running) {
+      var left = clock.left - (Date.now() - clock.start);
+      clock.left = left > 0 ? left : 0;
+    }
+    stopClock();
+  }
+
+  function tickClock() {
+    if (!clock.running) return;
+    var left = clock.left - (Date.now() - clock.start);
+    if (left <= 0) {
+      clock.left = 0;
+      clock.running = false;
+      clock.raf = 0;
+      paintBar();
+      timeUp();
+      return;
+    }
+    paintBar();
+    clock.raf = window.requestAnimationFrame(tickClock);
+  }
+
+  function armClock(ms) {
+    stopClock();
+    clock.total = ms;
+    clock.left = ms;
+    clock.start = Date.now();
+    clock.running = true;
+    clock.raf = window.requestAnimationFrame(tickClock);
+  }
+
+  function resumeClock() {
+    if (state.stufe !== 3) return;
+    if (state.phase !== 'task' || state.locked || state.revealed) return;
+    if (!clock.total || clock.left <= 0) return;
+    clock.start = Date.now();
+    clock.running = true;
+    if (clock.raf) window.cancelAnimationFrame(clock.raf);
+    clock.raf = window.requestAnimationFrame(tickClock);
+  }
+
+  function timeUp() {
+    if (state.stufe !== 3 || state.phase !== 'task' || state.locked || state.revealed) return;
+    var task = state.tasks[state.index];
+    revealGently('Die Zeit ist um. Die Antwort ist ' + task.answer + '. Schon gut.');
+  }
+
+  function revealGently(message) {
+    pauseClock();
+    state.locked = true;
+    state.revealed = true;
+    state.showHint = 0;
+    state.feedback = message;
+    state.feedbackKind = 'soft';
+    render();
+    later(advance, 2600);
+  }
+
+  function pickHTML() {
+    var g = GOALS[state.goal];
+    return '<div class="card pick-card">' +
+      '<div class="pip-wrap">' + pipSVG('happy', 96) + '</div>' +
+      '<h2>Wähl eine Stufe.</h2>' +
+      '<p class="sheet-note">' + esc(g.path) + '. Zehn Aufgaben.</p>' +
+      '<button type="button" class="btn quiet stufe" data-act="stufe" data-n="1">' +
+        '<span class="stufe-title">Stufe 1 — mit Tipps</span>' +
+        '<span class="stufe-sub">Pip hilft dir.</span></button>' +
+      '<button type="button" class="btn quiet stufe" data-act="stufe" data-n="2">' +
+        '<span class="stufe-title">Stufe 2 — ohne Tipps</span>' +
+        '<span class="stufe-sub">Du rechnest allein.</span></button>' +
+      '<button type="button" class="btn quiet stufe" data-act="stufe" data-n="3">' +
+        '<span class="stufe-title">Stufe 3 — mit der Zeit</span>' +
+        '<span class="stufe-sub">Ein Balken zeigt die Zeit.</span></button>' +
+      '</div>';
+  }
+
+  function showPick() {
+    cancelWait();
+    stopClock();
+    state.goal = state.pendingGoal;
+    state.phase = 'pick';
+    state.score = 0;
+    state.locked = false;
+    render();
+  }
+
+  function beginTask() {
+    state.phase = 'task';
+    state.tries = 0;
+    state.entry = '';
+    state.locked = false;
+    state.showHint = 0;
+    state.revealed = false;
+    state.feedback = '';
+    state.feedbackKind = '';
+    state.timeMs = 0;
+    if (state.stufe === 3) {
+      state.timeMs = timeMsForType(state.tasks[state.index].type);
+      armClock(state.timeMs);
+    } else {
+      stopClock();
+    }
+  }
+
+  function showInterlude(beat) {
+    stopClock();
+    state.phase = 'interlude';
+    state.beat = beat;
+    state.locked = true;
+    render();
+    later(function () {
+      if (state.phase !== 'interlude') return;
+      beginTask();
+      render();
+    }, 4000);
+  }
+
+  function writeStoredGoal(n) {
+    try { localStorage.setItem(STORAGE_KEY, String(n)); } catch (e) {}
+  }
+
+  function goalById(id) {
+    var i;
+    for (i = 0; i < GOALS.length; i++) if (GOALS[i].id === id) return GOALS[i];
+    return GOALS[0];
+  }
+
+  function stickerById(id) {
+    var i;
+    for (i = 0; i < STICKERS.length; i++) if (STICKERS[i].id === id) return STICKERS[i];
+    return null;
+  }
+
+  function readStoredStickers() {
+    try {
+      var raw = localStorage.getItem(STICKER_KEY);
+      if (!raw) return [];
+      var list = JSON.parse(raw);
+      if (!list || !list.length) return [];
+      var out = [];
+      var i;
+      for (i = 0; i < list.length && out.length < 6; i++) {
+        if (stickerById(list[i])) out.push(list[i]);
+      }
+      return out;
+    } catch (e) { return []; }
+  }
+
+  function loadAlbum() {
+    album = readStoredStickers();
+  }
+
+  function readStickers() {
+    return album.slice(0, 6);
+  }
+
+  function writeStickers(list) {
+    album = list.slice(0, 6);
+    try { localStorage.setItem(STICKER_KEY, JSON.stringify(album)); } catch (e) {}
+  }
+
+  function addCurrentSticker() {
+    var list = readStickers();
+    var missing = [];
+    var i;
+    if (list.length >= 6) return false;
+    for (i = 0; i < STICKERS.length; i++) {
+      if (list.indexOf(STICKERS[i].id) === -1) missing.push(STICKERS[i].id);
+    }
+    if (!missing.length) return false;
+    list.push(missing[randInt(0, missing.length - 1)]);
+    writeStickers(list);
+    return true;
+  }
+
+  function showReward() {
+    stopClock();
+    state.phase = 'reward';
+    state.locked = true;
+    writeStoredGoal(state.goal);
+    state.stickerAdded = addCurrentSticker();
+    render();
+    beepReward();
+  }
+
+  function openSheet() {
+    if (state.phase !== 'sheet') state.returnPhase = state.phase;
+    if (state.phase === 'task' && state.stufe === 3) pauseClock();
+    state.phase = 'sheet';
+    render();
+  }
+
+  function closeSheet() {
+    state.phase = state.returnPhase || 'task';
+    render();
+    if (state.phase === 'task' && state.stufe === 3) resumeClock();
+  }
+
+  function advance() {
+    var done = state.index + 1;
+    if (done >= 10) {
+      showReward();
+      return;
+    }
+    state.index = done;
+    if (done === 3) {
+      showInterlude(state.beats[0]);
+      return;
+    }
+    if (done === 7) {
+      showInterlude(state.beats[1]);
+      return;
+    }
+    beginTask();
+    render();
+  }
+
+  function submitValue(value) {
+    if (state.locked || state.phase !== 'task') return;
+    var task = state.tasks[state.index];
+    if (value === null || !isFinite(value)) {
+      state.feedback = 'Schreib erst eine Zahl.';
+      state.feedbackKind = 'soft';
+      render();
+      return;
+    }
+    if (value === task.answer) {
+      pauseClock();
+      state.locked = true;
+      state.score += 1;
+      state.feedback = 'Ja. Das stimmt.';
+      state.feedbackKind = 'ok';
+      state.entry = String(value);
+      state.showHint = 0;
+      beepOk();
+      render();
+      later(advance, 900);
+      return;
+    }
+    state.tries += 1;
+    state.entry = '';
+    beepNo();
+    if (state.tries >= 3) {
+      revealGently('Die Antwort ist ' + task.answer + '. Schon gut.');
+      return;
+    }
+    state.feedback = 'Fast. Versuch\'s nochmal.';
+    state.feedbackKind = 'soft';
+    if (state.stufe === 1 && state.tries >= 2 && state.showHint < 1) state.showHint = 1;
+    render();
+  }
+
+  function pushDigit(d) {
+    if (state.locked || state.phase !== 'task') return;
+    var task = state.tasks[state.index];
+    if (!task || task.choices) return;
+    if (state.entry === '0') state.entry = String(d);
+    else if (state.entry.length < 3) state.entry += String(d);
+    render();
+  }
+
+  function popDigit() {
+    if (state.locked || state.phase !== 'task') return;
+    if (state.tasks[state.index].choices) return;
+    state.entry = state.entry.slice(0, -1);
+    render();
+  }
+
+  function currentNumber() {
+    if (state.entry === '') return null;
+    var n = parseInt(state.entry, 10);
+    if (!isFinite(n)) return null;
+    return n;
+  }
+
+  function skipInterlude() {
+    if (state.phase !== 'interlude') return;
+    cancelWait();
+    beginTask();
+    render();
+  }
+
+  function continueAfterReveal() {
+    if (state.phase !== 'task' || !state.revealed) return;
+    cancelWait();
+    advance();
+  }
+
+  function readStoredGoal() {
+    try {
+      var v = localStorage.getItem(STORAGE_KEY);
+      if (v === null) return null;
+      var n = parseInt(v, 10);
+      if (n === 0 || n === 1 || n === 2) return n;
+    } catch (e) {}
+    return null;
+  }
+
+  function initialGoal() {
+    var last = readStoredGoal();
+    if (last === null) return 0;
+    return (last + 1) % 3;
+  }
+
+  function startRound(goal) {
+    cancelWait();
+    state.goal = goal;
+    var types = planTypes();
+    var tasks = [];
+    var i;
+    for (i = 0; i < types.length; i++) tasks.push(makeTask(types[i], i));
+    state.tasks = tasks;
+    state.index = 0;
+    state.score = 0;
+    state.beats = takeTwoBeats();
+    state.stickerAdded = false;
+    beginTask();
+    var trail = document.getElementById('trail');
+    if (trail) trail.setAttribute('data-goal', '');
+    render();
+  }
+
+  function toggleSound() {
+    soundOn = !soundOn;
+    paintSound();
+    if (soundOn) {
+      getCtx();
+      var ctx = getCtx();
+      if (ctx) tone(587, ctx.currentTime, 0.08, 0.02);
+    }
+  }
+
+  function onClick(e) {
+    var btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    var act = btn.getAttribute('data-act');
+    if (act === 'sound') { toggleSound(); return; }
+    if (act === 'digit') { pushDigit(btn.getAttribute('data-n')); return; }
+    if (act === 'del') { popDigit(); return; }
+    if (act === 'ok') { submitValue(currentNumber()); return; }
+    if (act === 'choice') { submitValue(parseInt(btn.getAttribute('data-n'), 10)); return; }
+    if (act === 'skip') { skipInterlude(); return; }
+    if (act === 'next') { continueAfterReveal(); return; }
+    if (act === 'help') {
+      if (state.stufe !== 1) return;
+      if (state.phase !== 'task' || state.revealed || state.locked) return;
+      if (state.showHint < 2) state.showHint += 1;
+      render();
+      return;
+    }
+    if (act === 'stufe') {
+      if (state.phase !== 'pick') return;
+      var picked = parseInt(btn.getAttribute('data-n'), 10);
+      if (picked !== 1 && picked !== 2 && picked !== 3) return;
+      state.stufe = picked;
+      startRound(state.pendingGoal);
+      return;
+    }
+    if (act === 'again') {
+      state.pendingGoal = (state.goal + 1) % 3;
+      showPick();
+      return;
+    }
+    if (act === 'sheet') { openSheet(); return; }
+    if (act === 'back') { closeSheet(); return; }
+    if (act === 'print') { window.print(); return; }
+    if (act === 'newsheet') { writeStickers([]); render(); return; }
+  }
+
+  function onKey(e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (state.phase === 'interlude') {
+      if (e.key === 'Enter') { e.preventDefault(); skipInterlude(); }
+      return;
+    }
+    if (state.phase !== 'task') return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (state.revealed) continueAfterReveal();
+      else submitValue(currentNumber());
+      return;
+    }
+    if (state.locked) return;
+    var task = state.tasks[state.index];
+    if (!task || task.choices) return;
+    if (e.repeat) return;
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      pushDigit(e.key);
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      popDigit();
+    }
+  }
+
+  function boot() {
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKey);
+    paintSound();
+    loadAlbum();
+    beatDeck = shuffle([0, 1, 2, 3, 4, 5]);
+    state.pendingGoal = initialGoal();
+    showPick();
+  }
+
+  globalThis.__rechenTest = {
+    planTypes: planTypes,
+    makeTask: makeTask,
+    hasNum: hasNum,
+    fallback: fallback,
+    timeMsForType: timeMsForType
+  };
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+  }
+})();
+</script>
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var proto = location.protocol;
+  var host = location.hostname;
+  var onLocal = host === 'localhost' || host === '127.0.0.1';
+  if (proto === 'https:' || (proto === 'http:' && onLocal)) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+})();
+</script>
+</body>
+</html>
