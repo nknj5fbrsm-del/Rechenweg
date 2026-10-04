@@ -73,24 +73,20 @@
     color: var(--muted);
     font-size: 16px;
   }
-  .sound {
+  .head-btn {
     flex: none;
     display: flex;
     align-items: center;
     gap: 6px;
     min-height: 44px;
-    padding: 0 12px 0 10px;
+    padding: 0 12px;
     border-radius: 999px;
     border: 2px solid var(--line);
     background: var(--paper);
     color: var(--muted);
+    font-size: 15px;
+    font-weight: 650;
   }
-  .sound[aria-pressed="true"] {
-    color: var(--teal-dark);
-    border-color: var(--teal);
-    background: var(--wash);
-  }
-  .sound-label { font-size: 15px; font-weight: 650; }
   .trail {
     display: flex;
     align-items: center;
@@ -586,6 +582,133 @@
     .choices button { min-height: 88px; }
     .pad button, .choices button, .btn { min-height: 58px; }
   }
+  @media (max-width: 480px) {
+    body.playing {
+      min-height: 0;
+      height: 100vh;
+      height: 100svh;
+      max-height: 100svh;
+      overflow: hidden;
+    }
+    body.playing .app {
+      height: 100%;
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding:
+        max(4px, env(safe-area-inset-top))
+        max(10px, env(safe-area-inset-right))
+        max(4px, env(safe-area-inset-bottom))
+        max(10px, env(safe-area-inset-left));
+    }
+    body.playing header { flex: none; }
+    body.playing h1 { font-size: 22px; }
+    body.playing .goal-line { margin: 0; font-size: 13px; line-height: 1.2; }
+    body.playing .head-btn { min-height: 36px; padding: 0 10px; font-size: 14px; }
+    body.playing .trail { flex: none; margin: 4px 0 6px; gap: 6px; }
+    body.playing .dot { width: 10px; height: 10px; }
+    body.playing .goal-mark,
+    body.playing .goal-mark svg { width: 22px; height: 22px; }
+    body.playing main {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    body.playing .card {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 8px 10px 6px;
+      border-radius: 18px;
+    }
+    body.playing .aufgabe { font-size: 13px; line-height: 1.2; }
+    body.playing .stufe-quiet { margin: 0 0 2px; font-size: 12px; line-height: 1.2; }
+    body.playing .timebar { height: 8px; margin: 1px 0 4px; }
+    body.playing .pip-wrap { margin: 0; }
+    body.playing .pip-wrap svg { width: 44px; height: 44px; }
+    body.playing .prompt { margin: 2px 0 0; font-size: 16px; line-height: 1.2; }
+    body.playing .expr { margin: 1px 0 4px; line-height: 1.05; }
+    body.playing .expr.xl { font-size: 40px; }
+    body.playing .expr.lg { font-size: 32px; }
+    body.playing .expr.md { font-size: 24px; }
+    body.playing .expr.sm { font-size: 18px; }
+    body.playing .field {
+      min-height: 40px;
+      border-radius: 12px;
+      font-size: 28px;
+    }
+    body.playing .caret { height: 24px; }
+    body.playing .msg {
+      min-height: 1.25em;
+      margin: 3px 0;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+    body.playing .hint {
+      margin: 0 0 4px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+    body.playing .help-btn {
+      min-height: 36px;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+    body.playing .pad {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-top: auto;
+      align-content: end;
+      gap: 6px;
+      grid-template-rows: repeat(4, minmax(36px, 64px));
+    }
+    body.playing .pad button,
+    body.playing .choices button,
+    body.playing .btn {
+      min-height: 0;
+      border-radius: 12px;
+    }
+    body.playing .pad button {
+      height: 100%;
+      font-size: 22px;
+      padding: 0;
+    }
+    body.playing .pad .ghost { font-size: 16px; }
+    body.playing .pad .go { font-size: 18px; }
+    body.playing .choices {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-top: auto;
+      align-content: end;
+      gap: 8px;
+      grid-template-rows: repeat(2, minmax(44px, 88px));
+    }
+    body.playing .choices button {
+      height: 100%;
+      min-height: 0;
+      font-size: 32px;
+    }
+    body.playing .btn { min-height: 44px; }
+  }
+  @media (max-width: 480px) and (max-height: 700px) {
+    body.playing h1 { font-size: 20px; }
+    body.playing .pip-wrap svg { width: 36px; height: 36px; }
+    body.playing .expr.xl { font-size: 34px; }
+    body.playing .expr.lg { font-size: 28px; }
+    body.playing .expr.md { font-size: 22px; }
+    body.playing .expr.sm { font-size: 17px; }
+    body.playing .field { min-height: 36px; font-size: 24px; }
+    body.playing .prompt { font-size: 15px; }
+    body.playing .pad { gap: 5px; grid-template-rows: repeat(4, minmax(32px, 52px)); }
+    body.playing .hint { font-size: 13px; padding: 4px 8px; }
+    body.playing .help-btn { min-height: 32px; font-size: 15px; }
+  }
   .head-actions { display: flex; gap: 8px; align-items: flex-start; }
   .btn.quiet {
     background: var(--paper);
@@ -670,11 +793,7 @@
         <p class="goal-line" id="goalLine">Weg zur Picknickwiese</p>
       </div>
       <div class="head-actions">
-        <button type="button" class="sound" id="sheetBtn" data-act="sheet" aria-label="Aufkleberblatt">Blatt</button>
-        <button type="button" class="sound" id="soundBtn" data-act="sound" aria-pressed="false" aria-label="Ton aus">
-          <svg class="speaker" width="22" height="16" viewBox="0 0 22 16" aria-hidden="true"></svg>
-          <span class="sound-label">Ton aus</span>
-        </button>
+        <button type="button" class="head-btn" id="sheetBtn" data-act="sheet" aria-label="Aufkleberblatt">Blatt</button>
       </div>
     </header>
     <div id="trail" class="trail"></div>
@@ -733,8 +852,6 @@
     timeMs: 0
   };
 
-  var soundOn = false;
-  var audioCtx = null;
   var waitId = 0;
   var waitHandle = 0;
   var beatDeck = [];
@@ -1386,23 +1503,6 @@
     return html + '</div>';
   }
 
-  function speakerPaths(on) {
-    var base = '<path d="M3 6 H7 L11 3 V13 L7 10 H3 Z" fill="currentColor"/>';
-    if (!on) {
-      return base + '<path d="M14 5 L20 11 M20 5 L14 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
-    }
-    return base + '<path d="M14 5.5 C16.2 7.2 16.2 8.8 14 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
-  }
-
-  function paintSound() {
-    var b = document.getElementById('soundBtn');
-    if (!b) return;
-    b.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
-    b.setAttribute('aria-label', soundOn ? 'Ton an' : 'Ton aus');
-    b.querySelector('.sound-label').textContent = soundOn ? 'Ton an' : 'Ton aus';
-    b.querySelector('.speaker').innerHTML = speakerPaths(soundOn);
-  }
-
   function trailInner() {
     var g = GOALS[state.goal];
     var dots = '';
@@ -1565,7 +1665,7 @@
     var line = document.getElementById('goalLine');
     if (line) line.textContent = goal.path;
     paintTrail();
-    paintSound();
+    document.body.classList.toggle('playing', state.phase === 'task');
     var sheetBtn = document.getElementById('sheetBtn');
     if (sheetBtn) sheetBtn.textContent = 'Blatt ' + readStickers().length + '/6';
     var stage = document.getElementById('stage');
@@ -1616,55 +1716,6 @@
   function cancelWait() {
     waitId++;
     window.clearTimeout(waitHandle);
-  }
-
-  function getCtx() {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    if (!audioCtx) audioCtx = new AC();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
-  }
-
-  function tone(freq, when, dur, gainVal) {
-    var ctx = getCtx();
-    if (!ctx) return;
-    var o = ctx.createOscillator();
-    var g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(freq, when);
-    g.gain.setValueAtTime(gainVal, when);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start(when);
-    o.stop(when + dur + 0.02);
-  }
-
-  function beepOk() {
-    if (!soundOn) return;
-    var ctx = getCtx();
-    if (!ctx) return;
-    var t = ctx.currentTime;
-    tone(523, t, 0.1, 0.03);
-    tone(659, t + 0.09, 0.14, 0.028);
-  }
-
-  function beepNo() {
-    if (!soundOn) return;
-    var ctx = getCtx();
-    if (!ctx) return;
-    tone(294, ctx.currentTime, 0.12, 0.022);
-  }
-
-  function beepReward() {
-    if (!soundOn) return;
-    var ctx = getCtx();
-    if (!ctx) return;
-    var t = ctx.currentTime;
-    tone(523, t, 0.1, 0.03);
-    tone(659, t + 0.11, 0.1, 0.03);
-    tone(784, t + 0.22, 0.18, 0.03);
   }
 
   var clock = { raf: 0, start: 0, left: 0, total: 0, running: false };
@@ -1880,7 +1931,6 @@
     writeStoredGoal(state.goal);
     state.stickerAdded = addCurrentSticker();
     render();
-    beepReward();
   }
 
   function openSheet() {
@@ -1932,14 +1982,12 @@
       state.feedbackKind = 'ok';
       state.entry = String(value);
       state.showHint = 0;
-      beepOk();
       render();
       later(advance, 900);
       return;
     }
     state.tries += 1;
     state.entry = '';
-    beepNo();
     if (state.tries >= 3) {
       revealGently('Die Antwort ist ' + task.answer + '. Schon gut.');
       return;
@@ -2020,21 +2068,10 @@
     render();
   }
 
-  function toggleSound() {
-    soundOn = !soundOn;
-    paintSound();
-    if (soundOn) {
-      getCtx();
-      var ctx = getCtx();
-      if (ctx) tone(587, ctx.currentTime, 0.08, 0.02);
-    }
-  }
-
   function onClick(e) {
     var btn = e.target.closest('[data-act]');
     if (!btn) return;
     var act = btn.getAttribute('data-act');
-    if (act === 'sound') { toggleSound(); return; }
     if (act === 'digit') { pushDigit(btn.getAttribute('data-n')); return; }
     if (act === 'del') { popDigit(); return; }
     if (act === 'ok') { submitValue(currentNumber()); return; }
@@ -2096,7 +2133,6 @@
   function boot() {
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey);
-    paintSound();
     loadAlbum();
     beatDeck = shuffle([0, 1, 2, 3, 4, 5]);
     state.pendingGoal = initialGoal();
