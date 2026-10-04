@@ -1,4 +1,4 @@
-var CACHE = 'rechenweg-v1';
+var CACHE = 'rechenweg-v2';
 var FILES = [
   './index.html',
   './manifest.webmanifest',
